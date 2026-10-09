@@ -1,0 +1,1 @@
+{"version":3,"file":"i_serializable.js","sourceRoot":"","sources":["../../../../core/interfaces/i_serializable.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAoBH,0EAA0E;AAC1E,MAAM,UAAU,cAAc,CAAC,GAAQ;IACrC,OAAO,CACL,GAAG;QACH,OAAO,GAAG,CAAC,SAAS,KAAK,UAAU;QACnC,OAAO,GAAG,CAAC,SAAS,KAAK,UAAU,CACpC,CAAC;AACJ,CAAC"}

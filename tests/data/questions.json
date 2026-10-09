@@ -1,0 +1,26 @@
+[
+  {
+    "id": "q1",
+    "title": "Hitung c = 2a - b",
+    "description": "Susun blok untuk menghitung nilai c = 2*a - b, lalu cetak hasilnya.",
+    "input": "Dua bilangan: a dan b",
+    "output": "Satu bilangan hasil perhitungan c",
+    "example": "Input: a=3, b=5 → Output: 1",
+    "tests": [
+      {"input": {"a": 3, "b": 5}, "expected": 1},
+      {"input": {"a": 10, "b": 4}, "expected": 16}
+    ]
+  },
+  {
+    "id": "q2",
+    "title": "Luas Persegi Panjang",
+    "description": "Susun blok untuk menghitung luas = p * l, lalu cetak hasilnya.",
+    "input": "Dua bilangan: p dan l",
+    "output": "Satu bilangan luas",
+    "example": "Input: p=5, l=4 → Output: 20",
+    "tests": [
+      {"input": {"p": 5, "l": 4}, "expected": 20},
+      {"input": {"p": 7, "l": 3}, "expected": 21}
+    ]
+  }
+]

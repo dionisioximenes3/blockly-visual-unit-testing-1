@@ -1,0 +1,1 @@
+{"version":3,"file":"i_procedure_block.js","sourceRoot":"","sources":["../../../../core/interfaces/i_procedure_block.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAcH,yEAAyE;AACzE,MAAM,UAAU,gBAAgB,CAC9B,KAA8B;IAE9B,KAAK,GAAG,KAAwB,CAAC;IACjC,OAAO,CACL,OAAO,KAAK,CAAC,iBAAiB,KAAK,UAAU;QAC7C,OAAO,KAAK,CAAC,iBAAiB,KAAK,UAAU;QAC7C,OAAO,KAAK,CAAC,cAAc,KAAK,UAAU,CAC3C,CAAC;AACJ,CAAC"}

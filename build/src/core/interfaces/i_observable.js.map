@@ -1,0 +1,1 @@
+{"version":3,"file":"i_observable.js","sourceRoot":"","sources":["../../../../core/interfaces/i_observable.ts"],"names":[],"mappings":"AAAA;;;;GAIG;AAYH;;;;GAIG;AACH,MAAM,UAAU,YAAY,CAAC,GAAQ;IACnC,OAAO,CACL,GAAG;QACH,OAAO,GAAG,CAAC,eAAe,KAAK,UAAU;QACzC,OAAO,GAAG,CAAC,cAAc,KAAK,UAAU,CACzC,CAAC;AACJ,CAAC"}

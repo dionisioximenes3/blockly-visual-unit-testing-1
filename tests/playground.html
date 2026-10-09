@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Testes Unitários com Blockly - Plataforma Profissional</title>
+  
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; overflow: hidden; }
+    
+    /* Header Styles */
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: white;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 1.5em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .header h1::before {
+      content: "🎯";
+      font-size: 1.3em;
+    }
+    
+    .admin-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 13px;
+      backdrop-filter: blur(5px);
+    }
+    
+    .admin-btn:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .user-badge {
+      background: rgba(255,255,255,0.15);
+      padding: 6px 16px;
+      border-radius: 25px;
+      font-size: 13px;
+      backdrop-filter: blur(5px);
+    }
+    
+    .logout-btn {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      border: none;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 13px;
+    }
+    
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(231,76,60,0.4);
+    }
+    
+    /* Main Container */
+    #app {
+      display: flex;
+      flex-direction: row;
+      height: calc(100vh - 62px);
+      gap: 0;
+      overflow: hidden;
+    }
+    
+    /* Question Panel */
+    #questionPanel {
+      width: 360px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border-right: 1px solid #e0e0e0;
+      overflow-y: auto;
+      padding: 20px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 12px rgba(0,0,0,0.05);
+    }
+    
+    #questionPanel h2 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      color: #1a1a2e;
+      font-size: 1.3em;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    #questionPanel h2::before {
+      content: "📋";
+    }
+    
+    #questionSelect {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 14px;
+      border-radius: 12px;
+      border: 2px solid #e0e0e0;
+      margin-bottom: 20px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    #questionSelect:hover {
+      border-color: #3498db;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(52,152,219,0.15);
+    }
+    
+    .question-section {
+      background: white;
+      padding: 15px 18px;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      border-left: 4px solid #3498db;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .question-section:hover {
+      transform: translateX(8px) translateY(-2px);
+      box-shadow: 0 8px 25px rgba(52,152,219,0.15);
+      border-left-color: #e74c3c;
+    }
+    
+    .question-section h3 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: #2c3e50;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .question-section h3::before {
+      content: "📌";
+      font-size: 12px;
+    }
+    
+    .question-section p {
+      margin: 0;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.5;
+    }
+    
+    .question-section code {
+      background: #f0f2f5;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      color: #e74c3c;
+      display: inline-block;
+    }
+    
+    /* Blockly Panel */
+    #blocklyPanel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #eef2f7;
+      overflow: hidden;
+      min-width: 0;
+    }
+    
+    /* Toolbar */
+    #toolbar {
+      background: white;
+      padding: 12px 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    #toolbar button {
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      border: none;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    #toolbar button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+    
+    #toolbar button:active {
+      transform: translateY(0);
+    }
+    
+    #runBtn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    #resetBtn { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    #exportBtn { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    #generateCodeBtn { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    
+    .import-btn {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      padding: 8px 18px;
+      font-size: 13px;
+    }
+    
+    .separator {
+      color: #bdc3c7;
+      margin: 0 5px;
+      font-size: 18px;
+    }
+    
+    #saveStatus {
+      margin-left: auto;
+      font-size: 12px;
+      color: #27ae60;
+      background: #e8f8f5;
+      padding: 6px 14px;
+      border-radius: 25px;
+      font-weight: 500;
+    }
+    
+    /* Blockly Div */
+    #blocklyDiv {
+      flex: 1;
+      background: #fff;
+      min-height: 200px;
+      position: relative;
+    }
+    
+    /* Code Tabs */
+    .code-tabs {
+      background: #1e1e1e;
+      border-top: 1px solid #333;
+      flex-shrink: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .code-tabs.visible {
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    
+    .tab-buttons {
+      display: flex;
+      background: #2d2d2d;
+      border-bottom: 1px solid #444;
+      padding: 0;
+      margin: 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .tab-btn {
+      background: #2d2d2d;
+      border: none;
+      color: #ccc;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .tab-btn:hover {
+      background: #3d3d3d;
+      color: white;
+    }
+    
+    .tab-btn.active {
+      background: #1e1e1e;
+      color: #4facfe;
+      border-bottom-color: #4facfe;
+    }
+    
+    .tab-content {
+      display: none;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      line-height: 1.6;
+      max-height: 230px;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .code-content {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    
+    /* ==================== OUTPUT PANEL CORRIGIDO ==================== */
+    .output-panel {
+      flex-shrink: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      background: #1e1e1e;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .output-panel.visible {
+      max-height: 200px;
+    }
+    
+    .output-panel.resizable.visible {
+      max-height: none;
+      height: 200px;
+    }
+    
+    .resize-handle {
+      position: absolute;
+      top: -6px;
+      left: 0;
+      right: 0;
+      height: 10px;
+      background: transparent;
+      cursor: ns-resize;
+      z-index: 100;
+      transition: background 0.2s ease;
+    }
+    
+    .resize-handle:hover {
+      background: rgba(52, 152, 219, 0.4);
+    }
+    
+    .resize-handle:active {
+      background: rgba(52, 152, 219, 0.7);
+    }
+    
+    .output-panel.resizable.visible #output {
+      flex: 1;
+      overflow-y: auto !important;
+      max-height: none !important;
+      height: auto !important;
+    }
+    
+    .output-panel.visible #output {
+      max-height: calc(200px - 38px);
+      overflow-y: auto;
+    }
+    
+    #output {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      overflow-y: auto;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 0;
+      line-height: 1.6;
+    }
+    
+    #output::before {
+      content: "📋 RESULTADO DOS TESTES";
+      display: block;
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #444;
+      padding-bottom: 8px;
+      letter-spacing: 1px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    
+    .toggle-panel-btn {
+      background: #2d2d2d;
+      color: #ccc;
+      font-size: 11px;
+      padding: 6px 12px;
+      cursor: pointer;
+      text-align: center;
+      border-top: 1px solid #444;
+      border-bottom: 1px solid #444;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    
+    .toggle-panel-btn:hover {
+      background: #3d3d3d;
+      color: white;
+    }
+    
+    /* Copy button */
+    .copy-code-btn {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      background: #4facfe;
+      border: none;
+      color: white;
+      padding: 5px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    
+    .copy-code-btn:hover {
+      background: #00f2fe;
+      transform: scale(1.02);
+    }
+    
+    .code-container {
+      position: relative;
+    }
+    
+    /* Status */
+    .status {
+      padding: 12px;
+      margin-top: 15px;
+      border-radius: 10px;
+      font-size: 12px;
+      text-align: center;
+    }
+    
+    .status.loading { background: #e3f2fd; color: #1565c0; border-left: 4px solid #1565c0; }
+    .status.success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #2e7d32; }
+    .status.error { background: #ffebee; color: #c62828; border-left: 4px solid #c62828; }
+    
+    /* Admin Panel */
+    #adminPanel {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 20px;
+      border: 2px solid #3498db;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    #adminPanel h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 14px;
+      color: #2c3e50;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    #adminPanel h3::before {
+      content: "🛠";
+    }
+    
+    #adminPanel input, #adminPanel textarea {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 13px;
+      transition: all 0.3s ease;
+    }
+    
+    #adminPanel input:focus, #adminPanel textarea:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+    }
+    
+    #adminPanel button {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    #adminPanel button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(102,126,234,0.4);
+    }
+    
+    /* Admin Actions */
+    #adminActions {
+      margin: 15px 0;
+      display: flex;
+      gap: 10px;
+    }
+    
+    #adminActions button {
+      flex: 1;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    #adminActions button:first-child {
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    }
+    
+    #adminActions button:last-child {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+    
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      width: 340px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    
+    .modal-content h3 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #1a1a2e;
+    }
+    
+    .modal-content input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    
+    .modal-content input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    
+    .modal-content button {
+      padding: 10px 20px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .modal-content button:first-of-type {
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      color: white;
+    }
+    
+    .modal-content button:last-of-type {
+      background: #95a5a6;
+      color: white;
+    }
+    
+    /* Notifications */
+    .warning-notification {
+      position: fixed;
+      top: 75px;
+      right: 20px;
+      background: white;
+      color: #856404;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border-left: 4px solid #ffc107;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      font-size: 13px;
+      font-weight: 500;
+      max-width: 350px;
+    }
+    
+    .warning-notification.success {
+      background: #d4edda;
+      color: #155724;
+      border-left-color: #28a745;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      #app {
+        flex-direction: column;
+      }
+      
+      #questionPanel {
+        width: 100%;
+        max-height: 280px;
+      }
+      
+      .header h1 {
+        font-size: 1.1em;
+      }
+      
+      #toolbar button {
+        padding: 6px 12px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Testes Unitários com Blockly</h1>
+  <div class="user-info">
+    <span id="userRole" class="user-badge">👤 Utilizador</span>
+    <button id="adminLoginBtn" class="admin-btn" onclick="showLogin()">🔐 Iniciar Sessão Admin</button>
+    <button id="logoutBtn" class="logout-btn" style="display:none;" onclick="logout()">🚪 Sair</button>
+  </div>
+</div>
+
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <h3>🔐 Iniciar Sessão Admin</h3>
+    <input id="adminUser" type="text" placeholder="Nome de Utilizador">
+    <input id="adminPass" type="password" placeholder="Palavra-passe">
+    <button onclick="loginAdmin()">Entrar</button>
+    <button onclick="hideLogin()">Cancelar</button>
+  </div>
+</div>
+
+<div id="app">
+  <div id="questionPanel">
+    <h2>Lista de Questões</h2>
+    <select id="questionSelect" disabled>
+      <option>📂 A carregar questões...</option>
+    </select>
+    
+    <div class="question-section">
+      <h3>📝 Descrição</h3>
+      <p id="descText">-</p>
+    </div>
+    
+    <div class="question-section">
+      <h3>📥 Entrada</h3>
+      <p id="inputText"><code>-</code></p>
+    </div>
+    
+    <div class="question-section">
+      <h3>📤 Saída</h3>
+      <p id="outputText"><code>-</code></p>
+    </div>
+    
+    <div class="question-section">
+      <h3>📋 Exemplo</h3>
+      <p id="exampleText"><code>-</code></p>
+    </div>
+    
+    <div id="adminActions" style="display:none;">
+      <button onclick="editTask(currentQuestion?.id)">✏️ Editar Questão</button>
+      <button onclick="deleteTask(currentQuestion?.id)">🗑 Eliminar Questão</button>
+    </div>
+    
+    <div id="loadStatus" class="status loading">📂 A carregar questões...</div>
+    
+    <div id="adminPanel" style="display:none;">
+      <h3>Painel do Admin</h3>
+      <input id="taskTitle" placeholder="Título da Tarefa">
+      <textarea id="taskDesc" placeholder="Descrição" rows="3"></textarea>
+      <input id="taskInput" placeholder="Entrada">
+      <input id="taskOutput" placeholder="Saída">
+      <input id="taskExample" placeholder="Exemplo">
+      <button onclick="uploadTask()">⬆️ Carregar Tarefa</button>
+    </div>
+  </div>
+  
+  <div id="blocklyPanel">
+    <div id="toolbar">
+      <button id="runBtn" title="Executar programa">▶ Executar</button>
+      <button id="resetBtn" title="Limpar área de trabalho">🗑 Limpar</button>
+      <span class="separator">|</span>
+      <button id="importBtn" class="import-btn" title="Importar de ficheiro JSON (formato universal)">📥 Importar</button>
+      <button id="exportBtn" title="Exportar para ficheiro JSON (formato universal)">📤 Exportar</button>
+      <button id="generateCodeBtn" title="Gerar código JavaScript/Python">💻 Gerar Código</button>
+      <span id="saveStatus">💾 Gravação automática ativa</span>
+    </div>
+    <div id="blocklyDiv"></div>
+    
+    <div class="code-tabs" id="codeTabs">
+      <div class="tab-buttons">
+        <button class="tab-btn active" onclick="switchTab('javascript', event)">📜 JavaScript</button>
+        <button class="tab-btn" onclick="switchTab('python', event)">🐍 Python</button>
+        <button class="toggle-panel-btn" style="margin-left: auto;" onclick="hideCodeTabs()">✖ Fechar</button>
+      </div>
+      <div id="javascript-tab" class="tab-content active">
+        <div class="code-container">
+          <button class="copy-code-btn" onclick="copyCode('javascript')">📋 Copiar</button>
+          <pre id="javascript-code" class="code-content">// Clique em "Gerar Código" para ver o código JavaScript</pre>
+        </div>
+      </div>
+      <div id="python-tab" class="tab-content">
+        <div class="code-container">
+          <button class="copy-code-btn" onclick="copyCode('python')">📋 Copiar</button>
+          <pre id="python-code" class="code-content"># Clique em "Gerar Código" para ver o código Python</pre>
+        </div>
+      </div>
+    </div>
+    
+    <div class="output-panel" id="outputPanel">
+      <div class="toggle-panel-btn" onclick="hideOutput()">✖ Fechar painel de resultados</div>
+      <pre id="output">✅ Pronto - Clique em Executar para iniciar os testes</pre>
+    </div>
+  </div>
+</div>
+ 
+<input type="file" id="importFileInput" accept=".json" style="display:none;">
+
+<script src="https://unpkg.com/blockly@11.2.0/blockly.min.js"></script>
+<script src="https://unpkg.com/blockly@11.2.0/blockly/javascript.js"></script>
+<script src="https://unpkg.com/blockly@11.2.0/python_compressed.js"></script>
+
+<script src="./scripts/unit_test_runtime.js"></script>
+<script src="./scripts/testing.messages.js"></script>
+<script src="./scripts/testing.blocks.js"></script>     
+<script src="./scripts/testing.generators.js"></script>   
+<script src="./scripts/testing.generators.python.js"></script>
+
+<script>
+// ==================== CONFIGURAÇÃO INICIAL ====================
+let workspace = null;
+let questions = [];
+let currentQuestion = null;
+let isAdmin = false;
+
+const AUTOSAVE_KEY = 'blockly_workspace_autosave';
+const ADMIN_USER = "admin";
+const ADMIN_PASS = "123";
+
+// ==================== NOTIFICAÇÕES ====================
+function mostrarAviso(mensagem, isSuccess = false) {
+  const notificationExistente = document.querySelector('.warning-notification');
+  if (notificationExistente) notificationExistente.remove();
+  
+  const notification = document.createElement('div');
+  notification.className = 'warning-notification';
+  if (isSuccess) notification.classList.add('success');
+  notification.innerHTML = isSuccess ? `✅ ${mensagem}` : `⚠️ ${mensagem}`;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification && notification.parentNode) {
+      notification.style.animation = 'slideOut 0.3s ease';
+      setTimeout(() => notification.remove(), 300);
+    }
+  }, 3000);
+}
+
+function mostrarSucesso(mensagem) {
+  mostrarAviso(mensagem, true);
+}
+
+// ==================== WORKSPACE FUNCTIONS ====================
+function guardarWorkspace() {
+  if (!workspace) return;
+  try {
+    const state = Blockly.serialization.workspaces.save(workspace);
+    // Salvar apenas o essencial (formato minimal)
+    const minimalState = {
+      blocks: state.blocks,
+      variables: state.variables
+    };
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(minimalState));
+    const numBlocos = workspace.getAllBlocks().length;
+    document.getElementById('saveStatus').innerHTML = `💾 Guardado ${new Date().toLocaleTimeString()} (${numBlocos} blocos)`;
+    setTimeout(() => {
+      document.getElementById('saveStatus').innerHTML = '💾 Gravação automática ativa';
+    }, 2000);
+  } catch(e) {
+    console.error('Erro ao guardar workspace:', e);
+  }
+}
+
+function restaurarWorkspace() {
+  if (!workspace) return false;
+  try {
+    const savedState = localStorage.getItem(AUTOSAVE_KEY);
+    if (savedState && savedState.trim() !== '') {
+      let state = JSON.parse(savedState);
+      // Se tiver wrapper 'workspace', extrair
+      if (state.workspace) state = state.workspace;
+      // Se tiver formato minimal com 'blocks' e 'variables'
+      if (state.blocks && !state.workspace) {
+        state = { blocks: state.blocks, variables: state.variables || [] };
+      }
+      workspace.clear();
+      Blockly.serialization.workspaces.load(state, workspace);
+      return workspace.getAllBlocks().length > 0;
+    }
+  } catch(e) {
+    console.error('Erro ao restaurar workspace:', e);
+  }
+  return false;
+}
+
+function limparWorkspaceCompleto() {
+  if (!workspace) return;
+  workspace.clear();
+  localStorage.removeItem(AUTOSAVE_KEY);
+  document.getElementById('output').textContent = '✅ Área de trabalho limpa - Pronto para criar novo programa';
+  if (window.UNIT_TEST_RUNTIME) window.UNIT_TEST_RUNTIME.reset();
+  mostrarSucesso('Área de trabalho limpa com sucesso!');
+  
+  hideCodeTabs();
+  hideOutput();
+}
+
+// ==================== PANEL TOGGLE FUNCTIONS ====================
+function showCodeTabs() {
+  const codeTabs = document.getElementById('codeTabs');
+  if (codeTabs) {
+    codeTabs.classList.add('visible');
+    setTimeout(() => {
+      codeTabs.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+  }
+}
+
+function hideCodeTabs() {
+  const codeTabs = document.getElementById('codeTabs');
+  if (codeTabs) {
+    codeTabs.classList.remove('visible');
+  }
+}
+
+// ==================== RESIZABLE OUTPUT ====================
+let isResizing = false;
+let startY = 0;
+let startHeight = 0;
+
+function makeOutputResizable() {
+  const outputPanel = document.getElementById('outputPanel');
+  if (!outputPanel) return;
+  
+  if (!outputPanel.classList.contains('resizable')) {
+    outputPanel.classList.add('resizable');
+  }
+  
+  if (!document.getElementById('resizeHandle')) {
+    const handle = document.createElement('div');
+    handle.id = 'resizeHandle';
+    handle.className = 'resize-handle';
+    handle.title = 'Arraste para redimensionar';
+    outputPanel.insertBefore(handle, outputPanel.firstChild);
+    
+    handle.addEventListener('mousedown', startResize);
+    document.addEventListener('mousemove', doResize);
+    document.addEventListener('mouseup', stopResize);
+  }
+}
+
+function startResize(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  isResizing = true;
+  startY = e.clientY;
+  const outputPanel = document.getElementById('outputPanel');
+  startHeight = outputPanel.offsetHeight;
+  
+  document.body.style.cursor = 'ns-resize';
+  document.body.style.userSelect = 'none';
+}
+
+function doResize(e) {
+  if (!isResizing) return;
+  e.preventDefault();
+  
+  const outputPanel = document.getElementById('outputPanel');
+  const deltaY = startY - e.clientY;
+  let newHeight = startHeight + deltaY;
+  
+  const maxHeight = window.innerHeight * 0.7;
+  newHeight = Math.min(maxHeight, Math.max(100, newHeight));
+  
+  outputPanel.style.height = newHeight + 'px';
+  localStorage.setItem('outputPanelHeight', newHeight);
+}
+
+function stopResize() {
+  isResizing = false;
+  document.body.style.cursor = '';
+  document.body.style.userSelect = '';
+}
+
+function loadOutputHeightPreference() {
+  const savedHeight = localStorage.getItem('outputPanelHeight');
+  if (savedHeight) {
+    const outputPanel = document.getElementById('outputPanel');
+    const height = parseInt(savedHeight, 10);
+    if (!isNaN(height) && height >= 100 && outputPanel.classList.contains('resizable')) {
+      outputPanel.style.height = height + 'px';
+    }
+  }
+}
+
+function showOutput() {
+  const outputPanel = document.getElementById('outputPanel');
+  if (outputPanel) {
+    // Reset para o tamanho padrão pequeno (200px)
+    outputPanel.style.height = '';
+    outputPanel.classList.remove('resizable');
+    outputPanel.classList.add('visible');
+    
+    // 🔥 ATIVAR RESIZE IMEDIATAMENTE - SEM PRECISAR CLICAR
+    setTimeout(() => {
+      makeOutputResizable();
+      
+      // Carregar altura salva se existir
+      const savedHeight = localStorage.getItem('outputPanelHeight');
+      if (savedHeight) {
+        const height = parseInt(savedHeight, 10);
+        if (!isNaN(height) && height >= 100) {
+          outputPanel.style.height = height + 'px';
+        }
+      }
+      
+      outputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+  }
+}
+
+function hideOutput() {
+  const outputPanel = document.getElementById('outputPanel');
+  if (outputPanel) {
+    if (outputPanel.style.height && outputPanel.style.height !== '') {
+      localStorage.setItem('outputPanelHeight', outputPanel.style.height);
+    }
+    outputPanel.classList.remove('visible');
+    outputPanel.classList.remove('resizable');
+    outputPanel.style.height = '';
+  }
+}
+
+// ==================== GERAÇÃO DE CÓDIGO ====================
+function gerarCodigo() {
+  showCodeTabs();
+  
+  if (!workspace) {
+    mostrarAviso("A área de trabalho não está pronta!");
+    return;
+  }
+
+  const blocks = workspace.getAllBlocks();
+  if (blocks.length === 0) {
+    mostrarAviso("Não há blocos na área de trabalho!");
+    return;
+  }
+
+  try {
+    let javascriptCode = '';
+    if (Blockly.JavaScript) {
+      Blockly.JavaScript.init(workspace);
+      javascriptCode = Blockly.JavaScript.workspaceToCode(workspace);
+    }
+    document.getElementById('javascript-code').textContent = javascriptCode || '// Nenhum código JavaScript gerado';
+
+    let pythonCode = '';
+    const py = Blockly.pythonGenerator || Blockly.Python;
+
+    if (py) {
+      try {
+        if (typeof py.init === 'function') {
+          py.init(workspace);
+        }
+        pythonCode = py.workspaceToCode(workspace);
+        
+        if (!pythonCode || pythonCode.trim() === '') {
+          pythonCode = '# ⚠️ Nenhum código Python gerado\n# Os blocos podem não ter implementação Python';
+        }
+      } catch (e) {
+        pythonCode = `# ❌ Erro no gerador Python: ${e.message}`;
+        console.warn('Python generator error:', e);
+      }
+    } else {
+      pythonCode = '# ❌ Gerador Python não carregado';
+    }
+
+    document.getElementById('python-code').textContent = pythonCode;
+    mostrarSucesso('Código gerado com sucesso!');
+
+  } catch (e) {
+    console.error('Erro ao gerar código:', e);
+    mostrarAviso('Erro ao gerar código: ' + e.message);
+  }
+}
+
+function atualizarCodigoAutomatico() {
+  if (!workspace) return;
+
+  try {
+    let jsCode = '';
+    if (Blockly.JavaScript) {
+      try {
+        Blockly.JavaScript.init(workspace);
+        jsCode = Blockly.JavaScript.workspaceToCode(workspace);
+      } catch (e) {
+        jsCode = '// Erro no gerador JavaScript: ' + e.message;
+      }
+    }
+    document.getElementById('javascript-code').textContent = jsCode || '// Código JavaScript aparecerá aqui...';
+
+    let pyCode = '';
+    const py = Blockly.pythonGenerator || Blockly.Python;
+
+    if (py) {
+      try {
+        if (typeof py.init === 'function') {
+          py.init(workspace);
+        }
+        pyCode = py.workspaceToCode(workspace);
+        if (!pyCode || pyCode.trim() === '') {
+          pyCode = '# Código Python aparecerá aqui...\n# (Clique em "Gerar Código" para atualizar)';
+        }
+      } catch (e) {
+        pyCode = '# Erro no gerador Python: ' + e.message;
+      }
+    } else {
+      pyCode = '# Gerador Python não carregado';
+    }
+
+    document.getElementById('python-code').textContent = pyCode;
+  } catch (e) {
+    console.error("Erro ao atualizar código:", e);
+  }
+}
+
+// ==================== UI FUNCTIONS ====================
+function switchTab(tab, event) {
+  const tabs = ['javascript', 'python'];
+  tabs.forEach(t => {
+    const btn = document.querySelector(`.tab-btn[onclick*="${t}"]`);
+    if (btn) btn.classList.remove('active');
+    const content = document.getElementById(`${t}-tab`);
+    if (content) content.classList.remove('active');
+  });
+  
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
+  
+  const activeContent = document.getElementById(`${tab}-tab`);
+  if (activeContent) activeContent.classList.add('active');
+}
+
+async function copyCode(tipo) {
+  const codeElement = document.getElementById(`${tipo}-code`);
+  const code = codeElement.textContent;
+  
+  try {
+    await navigator.clipboard.writeText(code);
+    mostrarSucesso(`Código ${tipo === 'javascript' ? 'JavaScript' : 'Python'} copiado!`);
+  } catch(err) {
+    const textarea = document.createElement('textarea');
+    textarea.value = code;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    mostrarSucesso(`Código ${tipo === 'javascript' ? 'JavaScript' : 'Python'} copiado!`);
+  }
+}
+
+// ==================== TOOLBOX ====================
+const toolbox = {
+  "kind": "categoryToolbox",
+  "contents": [
+    {"kind": "category", "name": "📐 Lógica", "colour": "#5C81A6", "contents": [
+      {"kind": "block", "type": "logic_compare"}, {"kind": "block", "type": "logic_operation"},
+      {"kind": "block", "type": "logic_negate"}, {"kind": "block", "type": "logic_boolean"},
+      {"kind": "block", "type": "logic_ternary"}, {"kind": "block", "type": "logic_null"}
+    ]},
+    {"kind": "category", "name": "🔄 Ciclos", "colour": "#5CA65C", "contents": [
+      {"kind": "block", "type": "controls_repeat_ext"}, {"kind": "block", "type": "controls_whileUntil"},
+      {"kind": "block", "type": "controls_for"}, {"kind": "block", "type": "controls_forEach"},
+      {"kind": "block", "type": "controls_flow_statements"}
+    ]},
+    {"kind": "category", "name": "🔢 Matemática", "colour": "#A65C5C", "contents": [
+      {"kind": "block", "type": "math_number"}, {"kind": "block", "type": "math_arithmetic"},
+      {"kind": "block", "type": "math_single"}, {"kind": "block", "type": "math_trig"},
+      {"kind": "block", "type": "math_constant"}, {"kind": "block", "type": "math_number_property"},
+      {"kind": "block", "type": "math_round"}, {"kind": "block", "type": "math_modulo"},
+      {"kind": "block", "type": "math_constrain"}, {"kind": "block", "type": "math_random_int"},
+      {"kind": "block", "type": "math_random_float"}, {"kind": "block", "type": "math_atan2"}
+    ]},
+    {"kind": "category", "name": "📝 Texto", "colour": "#5CA6A6", "contents": [
+      {"kind": "block", "type": "text"}, {"kind": "block", "type": "text_join"},
+      {"kind": "block", "type": "text_append"}, {"kind": "block", "type": "text_length"},
+      {"kind": "block", "type": "text_isEmpty"}, {"kind": "block", "type": "text_indexOf"},
+      {"kind": "block", "type": "text_charAt"}, {"kind": "block", "type": "text_getSubstring"},
+      {"kind": "block", "type": "text_changeCase"}, {"kind": "block", "type": "text_trim"},
+      {"kind": "block", "type": "text_print"}, {"kind": "block", "type": "text_prompt_ext"}
+    ]},
+    {"kind": "category", "name": "📋 Listas", "colour": "#A65CA6", "contents": [
+      {"kind": "block", "type": "lists_create_with"}, {"kind": "block", "type": "lists_repeat"},
+      {"kind": "block", "type": "lists_length"}, {"kind": "block", "type": "lists_isEmpty"},
+      {"kind": "block", "type": "lists_indexOf"}, {"kind": "block", "type": "lists_getIndex"},
+      {"kind": "block", "type": "lists_setIndex"}, {"kind": "block", "type": "lists_sort"},
+      {"kind": "block", "type": "lists_split"}, {"kind": "block", "type": "lists_reverse"}
+    ]},
+{"kind": "category", "name": "✅ Testes", "colour": "#A6A65C", "contents": [
+  {"kind": "block", "type": "test_suite"},
+  {"kind": "block", "type": "test_case"},
+  {"kind": "block", "type": "test_hook"},
+
+  {"kind": "block", "type": "assert_equals"},
+  {"kind": "block", "type": "assert_true"},
+  {"kind": "block", "type": "assert_approx"},
+  {"kind": "block", "type": "assert_deep_equals"},
+  {"kind": "block", "type": "assert_throws_stmt"},
+  {"kind": "block", "type": "assert_throws"},
+
+  {"kind": "block", "type": "throw_error"},
+  {"kind": "block", "type": "test_summary_text"},
+
+  // MOCK (OFF )
+  // {"kind": "block", "type": "mock_function"},
+  // {"kind": "block", "type": "mock_calls"},
+  // {"kind": "block", "type": "mock_reset"},
+
+  // BLOK  (OFF)
+  // {"kind": "block", "type": "eval_expression"},
+  // {"kind": "block", "type": "factorial_value"},
+  // {"kind": "block", "type": "classificar_numero"},
+
+  {"kind": "block", "type": "show_result"}
+]},
+
+
+    {"kind": "category", "name": "📦 Variáveis", "colour": "#5CA6A6", "custom": "VARIABLE"},
+    {"kind": "category", "name": "⚙️ Funções", "colour": "#A65C5C", "custom": "PROCEDURE"}
+  ]
+};
+
+// ==================== INICIALIZAÇÃO BLOCKLY ====================
+function initBlockly() {
+  try {
+    if (typeof registerTestingBlockDefs === 'function') {
+      registerTestingBlockDefs(Blockly);
+      console.log("✅ Blocks registados");
+    }
+
+    if (typeof registerAllGenerators === 'function') {
+      registerAllGenerators(Blockly, Blockly.JavaScript);
+      console.log("✅ Geradores JavaScript registados");
+    }
+
+    workspace = Blockly.inject('blocklyDiv', {
+      toolbox: toolbox,
+      grid: { spacing: 20, length: 3, colour: '#ccc', snap: true },
+      move: { scrollbars: true, drag: true, wheel: true },
+      zoom: { controls: true, wheel: true, startScale: 0.9 }
+    });
+    
+    console.log("✅ Blockly injetado");
+
+    const py = Blockly.pythonGenerator || Blockly.Python;
+    if (py && typeof registerTestingPyGenerators === 'function') {
+      registerTestingPyGenerators(Blockly, py);
+      console.log("✅ Geradores Python registados");
+    } else {
+      console.warn("⚠️ Gerador Python não disponível para registo");
+    }
+
+    let timeoutGuardar = null;
+    workspace.addChangeListener(function(event) {
+      if (event.isUiEvent) return;
+      atualizarCodigoAutomatico();
+      if (timeoutGuardar) clearTimeout(timeoutGuardar);
+      timeoutGuardar = setTimeout(() => guardarWorkspace(), 300);
+    });
+
+    window.addEventListener('resize', () => Blockly.svgResize(workspace));
+    setTimeout(() => Blockly.svgResize(workspace), 200);
+
+    return true;
+
+  } catch(e) {
+    console.error('Erro ao inicializar Blockly:', e);
+    document.getElementById('output').textContent = '❌ Falha ao carregar Blockly: ' + e.message;
+    return false;
+  }
+}
+
+// ==================== QUESTÕES ====================
+async function carregarPerguntas() {
+  const statusDiv = document.getElementById('loadStatus');
+  const select = document.getElementById('questionSelect');
+  
+  statusDiv.className = 'status loading';
+  statusDiv.textContent = '📂 A carregar questões...';
+  select.disabled = true;
+  
+  try {
+    const response = await fetch('./scripts/questions.json');
+    if (response.ok) {
+      const data = await response.json();
+      questions = data.questions || (Array.isArray(data) ? data : []);
+    } else {
+      questions = [];
+    }
+    
+    if (isAdmin) {
+      const stored = JSON.parse(localStorage.getItem("tasks") || "[]");
+      const existingIds = new Set(questions.map(q => q.id));
+      stored.forEach(task => {
+        if (!existingIds.has(task.id)) {
+          questions.push(task);
+        }
+      });
+    } else {
+      const stored = JSON.parse(localStorage.getItem("tasks") || "[]");
+      if (stored.length > 0 && questions.length === 0) {
+        questions = stored;
+      } else if (stored.length > 0) {
+        const existingIds = new Set(questions.map(q => q.id));
+        stored.forEach(task => {
+          if (!existingIds.has(task.id)) {
+            questions.push(task);
+          }
+        });
+      }
+    }
+    
+    if (questions.length === 0) {
+      throw new Error('Nenhuma questão encontrada');
+    }
+    
+    statusDiv.className = 'status success';
+    statusDiv.textContent = `✅ ${questions.length} questões carregadas`;
+    select.disabled = false;
+    
+  } catch(e) {
+    console.error('Erro ao carregar questões:', e);
+    statusDiv.className = 'status error';
+    statusDiv.innerHTML = `❌ Falha ao carregar questões<br><small>${e.message}</small><br><br>
+                           <button onclick="criarPerguntasExemplo()" style="margin-top:10px;padding:8px 15px;background:#f39c12;border:none;border-radius:6px;cursor:pointer;color:white;">
+                           📝 Criar Questões Exemplo
+                           </button>`;
+    select.disabled = true;
+    return;
+  }
+  
+  updateDropdown();
+  
+  select.onchange = () => {
+    const pergunta = questions.find(q => q.id == select.value);
+    if (pergunta) mostrarPergunta(pergunta);
+  };
+}
+
+function mostrarPergunta(pergunta) {
+  currentQuestion = pergunta;
+  if (currentQuestion) {
+    document.getElementById('descText').innerHTML = currentQuestion.description || '-';
+    document.getElementById('inputText').innerHTML = `<code>${escapeHtml(currentQuestion.input || '-')}</code>`;
+    document.getElementById('outputText').innerHTML = `<code>${escapeHtml(currentQuestion.output || '-')}</code>`;
+    document.getElementById('exampleText').innerHTML = `<code>${escapeHtml(currentQuestion.example || '-')}</code>`;
+  }
+}
+
+function escapeHtml(texto) {
+  const div = document.createElement('div');
+  div.textContent = texto;
+  return div.innerHTML;
+} 
+
+window.criarPerguntasExemplo = function() {
+  questions = [
+     {id: 1, title: "Soma de Dois Números", description: "Some dois números inteiros", input: "Dois números A e B", output: "A + B", example: "Entrada: 3 e 5 → Saída: 8"},
+     {id: 2, title: "Valor Dobro", description: "Calcule o dobro de um número inteiro.", input: "Um número inteiro x", output: "2 * x", example: "Entrada: 3 → Saída: 6"}
+  ];
+  
+  const statusDiv = document.getElementById('loadStatus');
+  const select = document.getElementById('questionSelect');
+  
+  statusDiv.className = 'status success';
+  statusDiv.textContent = `✅ ${questions.length} questões exemplo criadas`;
+  select.disabled = false;
+  
+  updateDropdown();
+  
+  if (!isAdmin) {
+    localStorage.setItem("tasks", JSON.stringify(questions));
+  }
+};
+
+function updateDropdown() {
+  const select = document.getElementById('questionSelect');
+  select.innerHTML = '';
+  
+  if (questions.length === 0) {
+    const option = document.createElement('option');
+    option.textContent = 'Nenhuma questão';
+    select.appendChild(option);
+    return;
+  }
+  
+  questions.forEach(q => {
+    const option = document.createElement('option');
+    option.value = q.id;
+    option.textContent = q.title;
+    select.appendChild(option);
+  });
+  
+  select.value = questions[0].id;
+  mostrarPergunta(questions[0]);
+}
+
+// ==================== EXECUÇÃO ====================
+async function executarPrograma() {
+  showOutput();
+  
+  atualizarCodigoAutomatico();
+  
+  const outputDiv = document.getElementById('output');
+  
+  if (!workspace) { 
+    outputDiv.textContent = '❌ Área de trabalho não está pronta'; 
+    return; 
+  }
+  
+  let output = '';
+  let resultados = [];
+  const logOriginal = console.log;
+  
+  try {
+    if (window.UNIT_TEST_RUNTIME) {
+      window.UNIT_TEST_RUNTIME.reset();
+    }
+    
+    const codigo = Blockly.JavaScript.workspaceToCode(workspace);
+    
+    if (!codigo || codigo.trim() === '') {
+      outputDiv.textContent = '⚠️ Nenhum código para executar';
+      return;
+    }
+    
+    console.log = (...args) => {
+      const linha = args.join(' ');
+      if (linha.includes("Resultado")) {
+        resultados.push(linha);
+      } else {
+        output += linha + '\n';
+      }
+      logOriginal(...args);
+    };
+    
+    const resultado = eval(codigo);
+    if (resultado && typeof resultado.then === 'function') {
+      await resultado;
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    let finalOutput = '';
+    
+    if (resultados.length > 0) {
+      finalOutput += (resultados.length === 1 ? "📌 O resultado esperado:\n" : "📌 Os resultados esperados:\n");
+      finalOutput += resultados.join('\n') + '\n\n';
+    }
+    
+    if (output.trim()) {
+      finalOutput += "🖥️ Saída do programa:\n";
+      finalOutput += output + '\n';
+    }
+    
+    if (window.UNIT_TEST_RUNTIME) {
+      const sumario = window.UNIT_TEST_RUNTIME.summary();
+      if (sumario && sumario.trim()) {
+        finalOutput += sumario;
+      }
+    }
+    
+    outputDiv.textContent = finalOutput || '✅ Programa executado com sucesso';
+    
+  } catch(e) {
+    outputDiv.textContent = '❌ Erro: ' + e.message;
+  } finally {
+    console.log = logOriginal;
+  }
+  
+  const btn = document.getElementById('runBtn');
+  btn.style.transform = 'scale(0.95)';
+  setTimeout(() => { btn.style.transform = ''; }, 200);
+}
+
+// ==================== EXPORT/IMPORT (FORMATO UNIVERSAL) ====================
+function exportarFicheiro() {
+  if (!workspace || workspace.getAllBlocks().length === 0) {
+    mostrarAviso("Não há programa para exportar!");
+    return;
+  }
+  
+  // FORMATO MINIMAL - compatível com Blockly padrão
+  const state = Blockly.serialization.workspaces.save(workspace);
+  
+  // Exportar apenas o necessário (formato limpo)
+  const dadosExportacao = {
+    blocks: state.blocks,
+    variables: state.variables
+  };
+  
+  const blob = new Blob([JSON.stringify(dadosExportacao, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `programa_${currentQuestion ? currentQuestion.title.replace(/\s+/g, '_') : 'workspace'}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  mostrarSucesso('Programa exportado com sucesso no formato universal!');
+}
+
+function importarFicheiro(ficheiro) {
+  if (!workspace) { mostrarAviso("Área de trabalho não está pronta!"); return; }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const jsonData = JSON.parse(e.target.result);
+      
+      // SUPORTA AMBOS OS FORMATOS (antigo e novo)
+      let state;
+      if (jsonData.workspace) {
+        // Formato antigo com wrapper
+        state = jsonData.workspace;
+      } else if (jsonData.blocks) {
+        // Formato minimal (recomendado)
+        state = { blocks: jsonData.blocks, variables: jsonData.variables || [] };
+      } else {
+        state = jsonData;
+      }
+      
+      if (!state) throw new Error('Formato inválido');
+      workspace.clear();
+      Blockly.serialization.workspaces.load(state, workspace);
+      guardarWorkspace();
+      mostrarSucesso('Programa importado com sucesso no formato universal!');
+    } catch(err) {
+      mostrarAviso('Falha na importação: ' + err.message);
+    }
+  };
+  reader.readAsText(ficheiro);
+}
+
+// ==================== ADMIN FUNCTIONS ====================
+function showLogin() { 
+  document.getElementById("loginModal").style.display = "flex"; 
+}
+
+function hideLogin() { 
+  document.getElementById("loginModal").style.display = "none"; 
+}
+
+function loginAdmin() {
+  const user = document.getElementById("adminUser").value;
+  const pass = document.getElementById("adminPass").value;
+  
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    isAdmin = true;
+    localStorage.setItem("isAdmin", "true");
+    
+    document.getElementById("adminPanel").style.display = "block";
+    document.getElementById("adminActions").style.display = "flex";
+    document.getElementById("userRole").innerHTML = "👑 Admin";
+    document.getElementById("adminLoginBtn").style.display = "none";
+    document.getElementById("logoutBtn").style.display = "inline-block";
+    
+    hideLogin();
+    carregarPerguntas();
+    mostrarSucesso("Sessão iniciada como Admin!");
+  } else {
+    alert("Falha na autenticação! Nome de utilizador ou palavra-passe incorretos.");
+  }
+}
+
+function logout() {
+  isAdmin = false;
+  localStorage.removeItem("isAdmin");
+  
+  document.getElementById("adminPanel").style.display = "none";
+  document.getElementById("adminActions").style.display = "none";
+  document.getElementById("userRole").innerHTML = "👤 Utilizador";
+  document.getElementById("adminLoginBtn").style.display = "inline-block";
+  document.getElementById("logoutBtn").style.display = "none";
+  
+  carregarPerguntas();
+  mostrarSucesso("Sessão terminada com sucesso!");
+}
+
+function uploadTask() {
+  if (!isAdmin) {
+    mostrarAviso("Apenas administradores podem adicionar tarefas!");
+    return;
+  }
+  
+  const title = document.getElementById("taskTitle").value;
+  const desc = document.getElementById("taskDesc").value;
+  const input = document.getElementById("taskInput").value;
+  const output = document.getElementById("taskOutput").value;
+  const example = document.getElementById("taskExample").value;
+  
+  if (!title || !desc) {
+    alert("Preencha o título e a descrição!");
+    return;
+  }
+  
+  const newTask = {
+    id: Date.now(),
+    title,
+    description: desc,
+    input,
+    output,
+    example
+  };
+  
+  let stored = JSON.parse(localStorage.getItem("tasks") || "[]");
+  stored.push(newTask);
+  localStorage.setItem("tasks", JSON.stringify(stored));
+  
+  questions.push(newTask);
+  updateDropdown();
+  
+  const blob = new Blob([JSON.stringify(stored, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "tasks.json";
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  alert("Tarefa adicionada com sucesso e ficheiro descarregado!");
+  mostrarSucesso("Nova questão adicionada!");
+  
+  document.getElementById("taskTitle").value = "";
+  document.getElementById("taskDesc").value = "";
+  document.getElementById("taskInput").value = "";
+  document.getElementById("taskOutput").value = "";
+  document.getElementById("taskExample").value = "";
+}
+
+function deleteTask(id) {
+  if (!isAdmin) {
+    mostrarAviso("Apenas administradores podem eliminar tarefas!");
+    return;
+  }
+  
+  if (!id) {
+    mostrarAviso("Nenhuma questão selecionada!");
+    return;
+  }
+  
+  if (confirm("Tem a certeza que deseja eliminar esta questão permanentemente?")) {
+    let stored = JSON.parse(localStorage.getItem("tasks") || "[]");
+    stored = stored.filter(t => t.id != id);
+    localStorage.setItem("tasks", JSON.stringify(stored));
+    
+    questions = questions.filter(q => q.id != id);
+    updateDropdown();
+    
+    mostrarSucesso("Questão eliminada com sucesso!");
+  }
+}
+
+function editTask(id) {
+  if (!isAdmin) {
+    mostrarAviso("Apenas administradores podem editar tarefas!");
+    return;
+  }
+  
+  if (!id) {
+    mostrarAviso("Nenhuma questão selecionada!");
+    return;
+  }
+  
+  const task = questions.find(q => q.id == id);
+  if (!task) return;
+  
+  document.getElementById("taskTitle").value = task.title;
+  document.getElementById("taskDesc").value = task.description;
+  document.getElementById("taskInput").value = task.input || "";
+  document.getElementById("taskOutput").value = task.output || "";
+  document.getElementById("taskExample").value = task.example || "";
+  
+  document.getElementById("adminPanel").scrollIntoView({ behavior: 'smooth' });
+  
+  const adminPanel = document.getElementById("adminPanel");
+  adminPanel.style.transition = "all 0.3s ease";
+  adminPanel.style.boxShadow = "0 0 0 3px rgba(52,152,219,0.5)";
+  setTimeout(() => { adminPanel.style.boxShadow = ""; }, 2000);
+  
+  mostrarAviso("Edite os campos abaixo, depois elimine a questão antiga e clique em 'Carregar Tarefa' para criar a versão atualizada.");
+}
+
+// ==================== EVENT LISTENERS ====================
+document.getElementById('runBtn').onclick = executarPrograma;
+document.getElementById('resetBtn').onclick = () => {
+  if (confirm('⚠️ Tem a certeza que deseja limpar a área de trabalho? Todos os blocos serão eliminados.')) {
+    limparWorkspaceCompleto();
+  }
+};
+document.getElementById('exportBtn').onclick = exportarFicheiro;
+document.getElementById('generateCodeBtn').onclick = gerarCodigo;
+
+const importBtn = document.getElementById('importBtn');
+const importFileInput = document.getElementById('importFileInput');
+
+importBtn.onclick = () => { importFileInput.click(); };
+importFileInput.addEventListener('change', (e) => {
+  if (e.target.files && e.target.files[0]) {
+    importarFicheiro(e.target.files[0]);
+  }
+  e.target.value = '';
+});
+
+// ==================== INICIALIZAÇÃO ====================
+document.addEventListener('DOMContentLoaded', async () => {
+  const savedAdminStatus = localStorage.getItem("isAdmin");
+  if (savedAdminStatus === "true") {
+    isAdmin = true;
+    document.getElementById("adminPanel").style.display = "block";
+    document.getElementById("adminActions").style.display = "flex";
+    document.getElementById("userRole").innerHTML = "👑 Admin";
+    document.getElementById("adminLoginBtn").style.display = "none";
+    document.getElementById("logoutBtn").style.display = "inline-block";
+  }
+  
+  const inicializado = initBlockly();
+  if (inicializado) {
+    await carregarPerguntas();
+    setTimeout(() => {
+      if (restaurarWorkspace()) mostrarSucesso('Programa anterior recuperado com sucesso!');
+    }, 0);
+  }
+});
+
+window.addEventListener('beforeunload', () => {
+  if (workspace && workspace.getAllBlocks().length > 0) guardarWorkspace();
+});
+
+// Tornar funções globais acessíveis
+window.switchTab = switchTab;
+window.copyCode = copyCode;
+window.showLogin = showLogin;
+window.hideLogin = hideLogin;
+window.loginAdmin = loginAdmin;
+window.logout = logout;
+window.uploadTask = uploadTask;
+window.deleteTask = deleteTask;
+window.editTask = editTask;
+window.criarPerguntasExemplo = criarPerguntasExemplo;
+window.showCodeTabs = showCodeTabs;
+window.hideCodeTabs = hideCodeTabs;
+window.showOutput = showOutput;
+window.hideOutput = hideOutput;
+</script>
+</body>
+</html>
